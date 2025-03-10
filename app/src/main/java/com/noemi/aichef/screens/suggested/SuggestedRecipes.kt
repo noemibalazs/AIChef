@@ -101,8 +101,12 @@ private fun SuggestedRecipesContent(
         item {
             AIChefCircularButton(
                 onClick = { viewModel.onEvent(SuggestedUIEvent.Disapprove) },
-                isEnabled = recipes.isNotEmpty() && promptText.isNotBlank()
+                isEnabled = recipes.isNotEmpty() && promptText.length > 5
             )
+        }
+
+        item {
+            Spacer(modifier = modifier.padding(20.dp))
         }
     }
 }
