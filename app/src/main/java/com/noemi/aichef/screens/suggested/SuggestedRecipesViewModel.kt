@@ -6,11 +6,17 @@ import com.noemi.aichef.model.SuggestedUIEvent
 import com.noemi.aichef.repository.RecipeRepository
 import com.noemi.aichef.room.Recipe
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,67 +31,52 @@ class SuggestedRecipesViewModel @Inject constructor(
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
 
+    init {
+        onEvent(SuggestedUIEvent.Search)
+    }
+
     override fun handleEvent(event: SuggestedUIEvent) {
         when (event) {
-            is SuggestedUIEvent.Search -> loadSuggestedRecipes()
+            is SuggestedUIEvent.Search -> loadRecipesWhenUserTyping()
             is SuggestedUIEvent.Disapprove -> loadMoreSuggestedRecipes()
             is SuggestedUIEvent.StateChanged -> recipeStateChanged(event.recipe)
         }
     }
 
-
     fun onTextChanged(text: String) {
+        if (text.isEmpty()) onEvent(SuggestedUIEvent.Search)
         _searchText.value = text
     }
 
-    private fun loadSuggestedRecipes() {
-        viewModelScope.launch {
-
-            when (_searchText.value.length < 6) {
-                true -> {
-                    _recipesState.update {
-                        it.copy(
-                            hasError = "Searched field cannot be empty or shorter than 5 characters!"
-                        )
-                    }
-
-                    delay(900)
-
-                    _recipesState.update {
-                        it.copy(
-                            hasError = ""
-                        )
-                    }
+    @OptIn(FlowPreview::class)
+    private fun loadRecipesWhenUserTyping() {
+        _searchText
+            .debounce(600)
+            .filter { query -> query.length > 5 }
+            .onEach {
+                _recipesState.update {
+                    it.copy(isLoading = true)
                 }
 
-                else -> {
+                delay(600)
+            }.zip(
+                recipeRepository.loadSuggestedRecipes(_searchText.value).catch { error ->
                     _recipesState.update {
-                        it.copy(isLoading = true)
+                        it.copy(
+                            isLoading = false,
+                            hasError = error.message ?: "Error, try it again!",
+                            recipes = emptyList()
+                        )
                     }
-
-                    delay(900)
-
-                    recipeRepository.loadSuggestedRecipes(_searchText.value)
-                        .catch { error ->
-                            _recipesState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    hasError = error.message ?: "Failed to load recipes, try it again!"
-                                )
-                            }
-                        }
-                        .collect { result ->
-                            _recipesState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    recipes = result,
-                                    hasError = ""
-                                )
-                            }
-                        }
+                }) { _, result ->
+                _recipesState.update {
+                    it.copy(
+                        isLoading = false,
+                        hasError = "",
+                        recipes = result
+                    )
                 }
-            }
-        }
+            }.launchIn(viewModelScope)
     }
 
     private fun loadMoreSuggestedRecipes() {

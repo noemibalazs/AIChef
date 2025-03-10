@@ -54,7 +54,6 @@ import com.noemi.aichef.util.getRecipeDrawable
 fun AIChefSearch(
     promptText: String,
     onPromptChanged: (String) -> Unit,
-    onClick: () -> Unit,
     isLoading: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -93,13 +92,11 @@ fun AIChefSearch(
                 contentDescription = null,
                 modifier = modifier
                     .size(30.dp)
-                    .clickable(enabled = !isLoading) {
-                        onClick.invoke()
-                        keyboardController?.hide()
-                    }
             )
         }
     )
+
+    if (isLoading) keyboardController?.hide()
 }
 
 @Composable

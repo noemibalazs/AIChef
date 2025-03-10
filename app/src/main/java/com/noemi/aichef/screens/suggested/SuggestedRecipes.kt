@@ -45,7 +45,6 @@ fun SuggestedRecipes(snackBarHostState: SnackbarHostState, modifier: Modifier = 
         AIChefSearch(
             promptText = promptText,
             onPromptChanged = viewModel::onTextChanged,
-            onClick = { viewModel.onEvent(SuggestedUIEvent.Search) },
             modifier = modifier,
             isLoading = recipesState.isLoading
         )
