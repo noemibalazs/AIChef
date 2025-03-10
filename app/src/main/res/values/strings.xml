@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">AIChef</string>
+
+    <string name="label_icon_content_description">AIChef icon</string>
+    <string name="label_app_bar_tag">App bar tag</string>
+    <string name="label_suggested">Suggested</string>
+    <string name="label_favorites">Favorites</string>
+
+    <string name="label_empty_suggested_screen">No recipes at the moment, search for recipes and save them for later!</string>
+    <string name="label_what_do_you_feel_like_eating">What do you feel like eating?</string>
+    <string name="label_dont_like_this">I don\'t like these</string>
+    <string name="label_recipe_avatar">Recipe avatar</string>
+
+    <string name="label_empty_favorites_screen">Empty results, you don\'t have any saved recipe!</string>
+
+    <string name="label_instructions">Instructions:</string>
+    <string name="label_description">Short descriptions:</string>
+    <string name="label_ingredients">Ingredients:</string>
+</resources>
