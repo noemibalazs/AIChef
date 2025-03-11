@@ -17,11 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.noemi.aichef.R
 import com.noemi.aichef.model.RecipeDetailsUIEvent
+import com.noemi.aichef.model.Source
 import com.noemi.aichef.room.Recipe
 import com.noemi.aichef.util.AIChefProgressIndicator
 
 @Composable
-fun RecipeDetailsScreen(viewModel: RecipeDetailsViewModel, modifier: Modifier = Modifier) {
+fun RecipeDetailsScreen(viewModel: RecipeDetailsViewModel, source: Source, modifier: Modifier = Modifier) {
 
     val recipe by viewModel.recipe.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -34,7 +35,7 @@ fun RecipeDetailsScreen(viewModel: RecipeDetailsViewModel, modifier: Modifier = 
 
         when (isLoading) {
             true -> AIChefProgressIndicator()
-            else -> DetailsScreen(recipe = recipe, viewModel = viewModel)
+            else -> DetailsScreen(recipe = recipe, viewModel = viewModel, source = source)
         }
     }
 }
@@ -42,6 +43,7 @@ fun RecipeDetailsScreen(viewModel: RecipeDetailsViewModel, modifier: Modifier = 
 @Composable
 fun DetailsScreen(
     recipe: Recipe,
+    source: Source,
     viewModel: RecipeDetailsViewModel,
     modifier: Modifier = Modifier
 ) {
@@ -61,7 +63,7 @@ fun DetailsScreen(
             RecipeNameWithIcon(
                 name = recipe.name,
                 onStateChanged = {
-                    viewModel.onEvent(RecipeDetailsUIEvent.StateChanged(recipe))
+                    viewModel.onEvent(RecipeDetailsUIEvent.StateChanged(recipe, source))
                 },
                 isFavorite = recipe.isFavorite
             )

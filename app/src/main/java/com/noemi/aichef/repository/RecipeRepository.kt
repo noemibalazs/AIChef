@@ -1,6 +1,7 @@
 package com.noemi.aichef.repository
 
 import com.noemi.aichef.room.Recipe
+import com.noemi.aichef.room.SuggestedRecipe
 import kotlinx.coroutines.flow.Flow
 
 interface RecipeRepository {
@@ -11,5 +12,13 @@ interface RecipeRepository {
 
     suspend fun removeRecipe(recipe: Recipe)
 
-   fun loadSuggestedRecipes(prompt: String): Flow<List<Recipe>>
+   fun loadSuggestedRecipes(prompt: String): Flow<List<SuggestedRecipe>>
+
+    fun observeSuggestedRecipes(): Flow<List<SuggestedRecipe>>
+
+    suspend fun insertSuggestedRecipes(recipe: List<SuggestedRecipe>)
+
+    suspend fun updateSuggestedRecipe(recipe: SuggestedRecipe)
+
+    suspend fun nukeSuggested()
 }

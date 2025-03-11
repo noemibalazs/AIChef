@@ -33,6 +33,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.noemi.aichef.R
+import com.noemi.aichef.model.Source
+import com.noemi.aichef.model.SourceType
 import com.noemi.aichef.room.Recipe
 import com.noemi.aichef.screens.details.RecipeDetailsActivity
 import com.noemi.aichef.util.getRecipeDrawable
@@ -62,7 +64,7 @@ fun AIChefFavoriteRecipe(
                     shape = RoundedCornerShape(6.dp)
                 )
                 .clickable {
-                    RecipeDetailsActivity.startDetailsActivity(context, recipe)
+                    RecipeDetailsActivity.startDetailsActivity(context, recipe, Source(SourceType.FAVORITE.name))
                 },
             elevation = CardDefaults.cardElevation(6.dp)
         ) {

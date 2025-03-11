@@ -4,13 +4,15 @@ import androidx.lifecycle.viewModelScope
 import com.noemi.aichef.base.BaseViewModel
 import com.noemi.aichef.model.SuggestedUIEvent
 import com.noemi.aichef.repository.RecipeRepository
-import com.noemi.aichef.room.Recipe
+import com.noemi.aichef.room.SuggestedRecipe
+import com.noemi.aichef.util.toRecipe
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
@@ -21,7 +23,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SuggestedRecipesViewModel @Inject constructor(
+class SuggestedViewModel @Inject constructor(
     private val recipeRepository: RecipeRepository
 ) : BaseViewModel<SuggestedUIEvent>() {
 
@@ -32,20 +34,51 @@ class SuggestedRecipesViewModel @Inject constructor(
     val searchText = _searchText.asStateFlow()
 
     init {
+        onEvent(SuggestedUIEvent.Observe)
         onEvent(SuggestedUIEvent.Search)
     }
 
     override fun handleEvent(event: SuggestedUIEvent) {
         when (event) {
+            is SuggestedUIEvent.Observe -> observe()
             is SuggestedUIEvent.Search -> loadRecipesWhenUserTyping()
             is SuggestedUIEvent.Disapprove -> loadMoreSuggestedRecipes()
             is SuggestedUIEvent.StateChanged -> recipeStateChanged(event.recipe)
         }
     }
 
+    private fun observe() {
+        viewModelScope.launch {
+            recipeRepository.observeSuggestedRecipes()
+                .catch { error ->
+                    _recipesState.update {
+                        it.copy(
+                            hasError = error.message ?: "An error occurred try it again!",
+                            recipes = emptyList()
+                        )
+                    }
+                }
+                .collectLatest { result ->
+                _recipesState.update {
+                    it.copy(
+                        hasError = "",
+                        recipes = result
+                    )
+                }
+            }
+        }
+    }
+
     fun onTextChanged(text: String) {
         if (text.isEmpty()) onEvent(SuggestedUIEvent.Search)
         _searchText.value = text
+        clearSuggestedRecipes()
+    }
+
+    private fun clearSuggestedRecipes() {
+        viewModelScope.launch {
+            recipeRepository.nukeSuggested()
+        }
     }
 
     @OptIn(FlowPreview::class)
@@ -64,18 +97,13 @@ class SuggestedRecipesViewModel @Inject constructor(
                     _recipesState.update {
                         it.copy(
                             isLoading = false,
-                            hasError = error.message ?: "Error, try it again!",
+                            hasError = error.message ?: "An error occurred, try it again!",
                             recipes = emptyList()
                         )
                     }
                 }) { _, result ->
-                _recipesState.update {
-                    it.copy(
-                        isLoading = false,
-                        hasError = "",
-                        recipes = result
-                    )
-                }
+
+                insertObserveSuggestedRecipes(result)
             }.launchIn(viewModelScope)
     }
 
@@ -90,8 +118,6 @@ class SuggestedRecipesViewModel @Inject constructor(
 
             delay(900)
 
-            val recipes = mutableListOf(recipesState.value.recipes)
-
             recipeRepository.loadSuggestedRecipes(_searchText.value)
                 .catch { error ->
 
@@ -103,20 +129,12 @@ class SuggestedRecipesViewModel @Inject constructor(
                     }
                 }
                 .collect { result ->
-
-                    recipes.add(result)
-                    _recipesState.update {
-                        it.copy(
-                            isLoading = false,
-                            recipes = recipes.flatten(),
-                            hasError = ""
-                        )
-                    }
+                    insertObserveSuggestedRecipes(result)
                 }
         }
     }
 
-    private fun recipeStateChanged(recipe: Recipe) {
+    private fun recipeStateChanged(recipe: SuggestedRecipe) {
         viewModelScope.launch {
 
             _recipesState.update {
@@ -131,10 +149,10 @@ class SuggestedRecipesViewModel @Inject constructor(
                 when (result == recipe) {
                     true -> {
                         if (recipe.isFavorite) {
-                            recipeRepository.removeRecipe(recipe)
+                            recipeRepository.removeRecipe(recipe.toRecipe())
                             result.copy(isFavorite = false)
                         } else {
-                            recipeRepository.insertRecipe(recipe.copy(isFavorite = true))
+                            recipeRepository.insertRecipe(recipe.copy(isFavorite = true).toRecipe())
                             result.copy(isFavorite = true)
                         }
                     }
@@ -143,11 +161,21 @@ class SuggestedRecipesViewModel @Inject constructor(
                 }
             }
 
-            _recipesState.update {
-                it.copy(
-                    isLoading = false,
-                    recipes = updatedRecipes
-                )
+            insertObserveSuggestedRecipes(updatedRecipes)
+        }
+    }
+
+    private fun insertObserveSuggestedRecipes(recipes: List<SuggestedRecipe>) {
+        viewModelScope.launch {
+            recipeRepository.insertSuggestedRecipes(recipes)
+            recipeRepository.observeSuggestedRecipes().collectLatest { result ->
+                _recipesState.update {
+                    it.copy(
+                        isLoading = false,
+                        hasError = "",
+                        recipes = result
+                    )
+                }
             }
         }
     }
@@ -155,6 +183,6 @@ class SuggestedRecipesViewModel @Inject constructor(
     data class SuggestedRecipesState(
         val isLoading: Boolean = false,
         val hasError: String = "",
-        val recipes: List<Recipe> = emptyList()
+        val recipes: List<SuggestedRecipe> = emptyList()
     )
 }

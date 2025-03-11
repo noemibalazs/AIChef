@@ -19,7 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.noemi.aichef.R
 import com.noemi.aichef.model.SuggestedUIEvent
-import com.noemi.aichef.room.Recipe
+import com.noemi.aichef.room.SuggestedRecipe
 import com.noemi.aichef.util.AIChefProgressIndicator
 import com.noemi.aichef.util.EmptyResult
 import com.noemi.aichef.util.showSnackBar
@@ -27,7 +27,7 @@ import com.noemi.aichef.util.showSnackBar
 @Composable
 fun SuggestedRecipes(snackBarHostState: SnackbarHostState, modifier: Modifier = Modifier) {
 
-    val viewModel = hiltViewModel<SuggestedRecipesViewModel>()
+    val viewModel = hiltViewModel<SuggestedViewModel>()
 
     val recipesState by viewModel.recipesState.collectAsStateWithLifecycle()
     val promptText by viewModel.searchText.collectAsStateWithLifecycle()
@@ -65,9 +65,9 @@ fun SuggestedRecipes(snackBarHostState: SnackbarHostState, modifier: Modifier = 
 
 @Composable
 private fun SuggestedRecipesContent(
-    recipes: List<Recipe>,
+    recipes: List<SuggestedRecipe>,
     promptText: String,
-    viewModel: SuggestedRecipesViewModel,
+    viewModel: SuggestedViewModel,
     modifier: Modifier = Modifier
 ) {
     val lazyState = rememberLazyListState()
@@ -84,9 +84,7 @@ private fun SuggestedRecipesContent(
 
         items(
             items = recipes,
-            key = { recipe ->
-                generateKey(recipe)
-            }
+            key = { recipe -> recipe }
         ) { recipe ->
             AIChefSuggestedRecipe(recipe = recipe, onRecipeStateChanged = {
                 viewModel.onEvent(SuggestedUIEvent.StateChanged(recipe))
@@ -109,6 +107,3 @@ private fun SuggestedRecipesContent(
         }
     }
 }
-
-
-private fun generateKey(recipe: Recipe) = "${recipe.description}:${recipe.isFavorite}"

@@ -7,6 +7,8 @@ object Constants {
 
     const val CHEF_TABLE = "ai_chef_table"
     const val CHEF_DB = "ai_chef_db"
+    const val SUGGESTED_TABLE = "ai_suggested_table"
 
     const val KEY_RECIPE = "key_recipe"
+    const val KEY_SOURCE = "key_source"
 }

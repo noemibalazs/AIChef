@@ -6,7 +6,7 @@ import androidx.room.TypeConverters
 import com.noemi.aichef.room.converters.IngredientsTypeConverter
 import com.noemi.aichef.room.converters.StepsTypeConverter
 
-@Database(entities = [Recipe::class], version = 2)
+@Database(entities = [Recipe::class, SuggestedRecipe::class], version = 2)
 @TypeConverters(
     IngredientsTypeConverter::class,
     StepsTypeConverter::class
@@ -14,4 +14,6 @@ import com.noemi.aichef.room.converters.StepsTypeConverter
 abstract class RecipeDataBase : RoomDatabase() {
 
     abstract fun provideRecipeDao(): RecipeDAO
+
+    abstract fun provideSuggestedDao(): SuggestedDAO
 }

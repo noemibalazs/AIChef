@@ -91,6 +91,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.livedata)
+    implementation(libs.androidx.process)
 
     implementation(libs.coil.compose)
     implementation(libs.kotlinx.serialization)

@@ -2,12 +2,14 @@ package com.noemi.aichef.di
 
 import android.content.Context
 import androidx.room.Room
+import com.noemi.aichef.observer.AppObserver
 import com.noemi.aichef.provider.DispatcherProvider
 import com.noemi.aichef.provider.DispatcherSourceProvider
 import com.noemi.aichef.repository.RecipeRepository
 import com.noemi.aichef.repository.RecipeRepositoryImpl
 import com.noemi.aichef.room.RecipeDAO
 import com.noemi.aichef.room.RecipeDataBase
+import com.noemi.aichef.room.SuggestedDAO
 import com.noemi.aichef.service.RecipeService
 import com.noemi.aichef.service.RecipeServiceImpl
 import com.noemi.aichef.util.Constants.CHEF_DB
@@ -22,6 +24,8 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 import javax.inject.Singleton
 
@@ -33,14 +37,31 @@ class AIChefModule {
     @Provides
     fun provideDispatcher(): DispatcherProvider = DispatcherSourceProvider
 
+    @Singleton
+    @Provides
+    fun providesScope(provider: DispatcherProvider): CoroutineScope = CoroutineScope(provider.default() + SupervisorJob())
+
+    @Provides
+    @Singleton
+    fun providesObserver(
+        repository: RecipeRepository,
+        scope: CoroutineScope
+    ): AppObserver = AppObserver(repository, scope)
+
     @Provides
     @Singleton
     fun providesRecipeDataBase(@ApplicationContext context: Context): RecipeDataBase =
-        Room.databaseBuilder(context, RecipeDataBase::class.java, CHEF_DB).fallbackToDestructiveMigration(false).build()
+        Room.databaseBuilder(context, RecipeDataBase::class.java, CHEF_DB)
+            .fallbackToDestructiveMigration(false)
+            .build()
 
     @Provides
     @Singleton
     fun providesRecipeDAO(dataBase: RecipeDataBase): RecipeDAO = dataBase.provideRecipeDao()
+
+    @Provides
+    @Singleton
+    fun providesSuggestedRecipeDAO(dataBase: RecipeDataBase): SuggestedDAO = dataBase.provideSuggestedDao()
 
     @Provides
     @Singleton
@@ -74,6 +95,10 @@ class AIChefModule {
 
     @Provides
     @Singleton
-    fun providesRecipeRepository(recipeDAO: RecipeDAO, service: RecipeService, json: Json): RecipeRepository =
-        RecipeRepositoryImpl(recipeDAO = recipeDAO, recipeService = service, json)
+    fun providesRecipeRepository(
+        recipeDAO: RecipeDAO,
+        suggestedDAO: SuggestedDAO,
+        service: RecipeService, json: Json
+    ): RecipeRepository =
+        RecipeRepositoryImpl(recipeDAO = recipeDAO, suggestedDAO = suggestedDAO, recipeService = service, json)
 }

@@ -1,8 +1,8 @@
 package com.noemi.aichef.model
 
 import com.noemi.aichef.room.Ingredients
-import com.noemi.aichef.room.Recipe
 import com.noemi.aichef.room.Steps
+import com.noemi.aichef.room.SuggestedRecipe
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -13,10 +13,10 @@ data class GeminiRecipe(
     val steps: List<String> = emptyList()
 )
 
-fun List<GeminiRecipe>.toRecipes(): List<Recipe> {
-    val list = mutableListOf<Recipe>()
+fun List<GeminiRecipe>.toSuggestedRecipes(): List<SuggestedRecipe> {
+    val list = mutableListOf<SuggestedRecipe>()
     this.map { gemini ->
-        val recipe = Recipe(
+        val recipe = SuggestedRecipe(
             name = gemini.name,
             description = gemini.description,
             ingredients = Ingredients(gemini.ingredients),

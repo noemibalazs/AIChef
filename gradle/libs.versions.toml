@@ -1,7 +1,7 @@
 [versions]
 agp = "8.5.2"
 
-kotlin = "2.1.0"
+kotlin = "2.0.0"
 coreKtx = "1.13.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -19,7 +19,7 @@ hilt-compiler = "1.2.0"
 coroutines = "1.8.1"
 
 room = "2.7.0-alpha04"
-ksp = "2.1.0-1.0.29"
+ksp = "2.0.0-1.0.23"
 
 ktor = "2.3.12"
 ktor-logging = "2.3.2"
@@ -32,6 +32,7 @@ androidx-lifecycle-livedata = { group = "androidx.lifecycle", name = "lifecycle-
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-lifecycle-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecyle-compose" }
+androidx-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
 
 androidx-constraint = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraint" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
