@@ -21,6 +21,7 @@ Libraries:
 5. Room
 6. Ktor
 7. Bottom navigation
+8. Material Design 3
 
    Screenshots:
 
