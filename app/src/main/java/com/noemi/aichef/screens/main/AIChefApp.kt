@@ -139,9 +139,10 @@ private fun AIChefBottomNavigationBar(navController: NavHostController, modifier
                             popUpTo(it) {
                                 saveState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
                         }
+
+                        launchSingleTop = true
+                        restoreState = true
                     }
                 }
             )
